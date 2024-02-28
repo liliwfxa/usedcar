@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Price Prediction</title>
+<style>
+   
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: url('image.png') no-repeat center center fixed;
+    background-size: cover;
+    text-align: center;
+    color: white;
+  }
+
+  .predict-btn {
+    font-size: 20px;
+    color: #ffffff;
+    background-color: rgba(0, 102, 255, 0.8);
+    border: none;
+    padding: 20px 40px;
+    cursor: pointer;
+    border-radius: 10px;
+    position: absolute;
+    bottom: 1.5cm;
+    left: 50%;
+    transform: translateX(-50%);
+    outline: none;
+    font: 18;
+    width: 300px; /* Increase the width here */
+    height: 70px; /* Increase the height here */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.3s, transform 0.2s;
+
+  }
+
+
+  .predict-btn:hover {
+    background-color: rgba(0, 102, 255, 1); /* Darker shade on hover */
+    transform: translateX(-50%) scale(1.05); /* Slight scale-up effect on hover */
+  }
+
+
+
+
+
+  .form-popup {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 80px;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 255, 0.7);
+    z-index: 10;
+  }
+
+  .form-container {
+    max-width: 300px;
+    padding: 20px;
+  }
+
+  .form-container input[type="text"],
+  .form-container input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #00ff00;
+    background-color: #000;
+    color: #0f0;
+    outline: none;
+    display: none; /* Initially hide all inputs */
+  }
+
+  .form-container input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #ff0055;
+    color: #fff;
+    outline: none;
+    display: none; /* Initially hide submit button */
+  }
+  /* Style remains unchanged */
+</style>
+</head>
+<body>
+
+<!-- Added a button outside the form-popup, which on click will show the inputs -->
+<button class="predict-btn" id="startPredictionBtn">Click to Predict Price</button>
+
+<div class="form-popup" id="myForm">
+  <form action="/predict" method="post" class="form-container" id="predictionForm">
+    <input type="text" placeholder="Manufacturer" name="manufacturer" required>
+    <input type="text" placeholder="Model" name="model" required>
+    <input type="text" placeholder="Condition" id="condition" name="condition" oninput="showNextInput('cylinders')">
+    <input type="text" placeholder="Cylinders" id="cylinders" name="cylinders" oninput="showNextInput('fuel')">
+    <input type="text" placeholder="Fuel" id="fuel" name="fuel" oninput="showNextInput('odometer')">
+    <input type="number" placeholder="Odometer" id="odometer" name="odometer" oninput="showNextInput('title_status')">
+    <input type="text" placeholder="Title Status" id="title_status" name="title_status" oninput="showNextInput('transmission')">
+    <input type="text" placeholder="Transmission" id="transmission" name="transmission" oninput="showNextInput('drive')">
+    <input type="text" placeholder="Drive" id="drive" name="drive" oninput="showNextInput('type')">
+    <input type="text" placeholder="Type" id="type" name="type" oninput="showNextInput('paint_color')">
+    <input type="text" placeholder="Paint Color" id="paint_color" name="paint_color" oninput="showNextInput('lat')">
+    <input type="number" placeholder="Latitude" id="lat" name="lat" step="any" oninput="showNextInput('long')">
+    <input type="number" placeholder="Longitude" id="long" name="long" step="any" oninput="showNextInput('car_age')">
+    <input type="number" placeholder="Car Age" id="car_age" name="car_age" oninput="showNextInput('submit')">
+    <!-- Add more inputs as per your requirement -->
+    <input type="submit" value="Submit Prediction">
+    <!-- Input fields will initially be hidden and shown one by one -->
+    <!-- Inputs remain unchanged -->
+  </form>
+</div>
+
+<audio id="clickSound" src="click.wav"></audio>
+<audio id="moneySound" src="money.wav"></audio>
+
+<script>
+const startPredictionBtn = document.getElementById('startPredictionBtn');
+const myForm = document.getElementById('myForm');
+const clickSound = document.getElementById('clickSound');
+const moneySound = document.getElementById('moneySound');
+const inputs = document.querySelectorAll('.form-container input[type="text"], .form-container input[type="number"]');
+const predictionForm = document.getElementById('predictionForm');
+
+// Initially hide all inputs and submit button
+inputs.forEach(input => input.style.display = 'none');
+predictionForm.querySelector('input[type="submit"]').style.display = 'none';
+
+
+
+
+// 显示表单和播放点击声音的功能
+startPredictionBtn.onclick = function() {
+    playClickSound();
+    // 显示第一个输入
+    showInput(0);
+    // 点击后隐藏按钮
+    startPredictionBtn.style.display = 'none';
+    myForm.style.display = 'block'; // 显示表单
+};
+
+function playClickSound() {
+    clickSound.play();
+}
+
+
+function playmoneySound() {
+    moneySound.play();
+}
+
+
+
+function showInput(index) {
+    if (index < inputs.length) {
+        inputs[index].style.display = 'block';
+        inputs[index].focus();
+        inputs[index].addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.style.display = 'none';
+                const nextIndex = index + 1;
+                if (nextIndex < inputs.length) {
+                    showInput(nextIndex);
+                } else {
+                    // 在这里添加提交按钮的显示逻辑
+                    const submitButton = predictionForm.querySelector('input[type="submit"]');
+                    submitButton.style.display = 'block';
+                    submitButton.onclick = function() {
+                        moneySound.play(); // 播放提交音效
+                    };
+                }
+            }
+        });
+    } else {
+        // 直接处理提交按钮的点击事件
+        const submitButton = predictionForm.querySelector('input[type="submit"]');
+        submitButton.style.display = 'block';
+        submitButton.onclick = function() {
+            moneySound.play(); // 播放提交音效
+        };
+    }
+}
+
+// 其他之前的代码保持不变
+
+</script>
+
+</body>
+</html>
